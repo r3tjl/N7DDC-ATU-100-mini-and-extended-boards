@@ -35,7 +35,7 @@ void main() {
    if(STATUS.B4==0) Restart = 1;
    pic_init();
    //
-   Delay_ms (100);
+   Delay_ms (300);
    asm CLRWDT;
    cells_init();
    Soft_I2C_Init();
@@ -43,21 +43,29 @@ void main() {
       LATB.B6 = 1;
       LATB.B7 = 1;
    }
+   else if(type==6){
+      LATB.B6 = 0;
+      LATB.B7 = 0;
+   }
    Low = 0;
    Mid = 0;
    High = 0;
    dysp_cnt = Dysp_delay * dysp_cnt_mult;
    //
-   Delay_ms(200);
+   Delay_ms(300);
    asm CLRWDT;
    if(PORTB.B4==0 & PORTB.B5==0) {     // Test mode
       Test = 1;
       Auto = 0;
    }
+   
+   Delay_ms(300);
+   asm CLRWDT;
+   
    led_init();
    if(PORTB.B4==0 & PORTB.B5==0 & PORTB.B0==0)  { // Fast Test mode (loop)
-      if(type==1) led_wr_str (0, 3, "FAST TEST", 9); // 1602
-      else if(type!=0) led_wr_str (0, 12, "FAST TEST", 9); // 128*64 | 128*32
+      if(type==4 | type==5) led_wr_str (0, 3, "FAST TEST", 9); // 1602 | 128*32
+      else if(type!=0) led_wr_str (0, 12, "FAST TEST", 9); // 128*64
       set_cap(255);
       set_ind(255);
       set_sw(1);
@@ -116,13 +124,13 @@ void main() {
            if(L==1) {
               if(type==4 |type==5)   // 128*64 OLED
                  led_wr_str (0, 16+12*8, "l", 1);
-              else if(type!=0)              // 1602 LCD & 128*32 OLED
+              else if(type!=0 & type!=6)              // 1602 LCD & 128*32 OLED
                  led_wr_str (0, 8, "l", 1);
            }
            else {
               if(type==4 |type==5)   // 128*64 OLED
                  led_wr_str (0, 16+12*8, "c", 1);
-              else if(type!=0)              // 1602 LCD & 128*32 OLED
+              else if(type!=0 & type !=6)              // 1602 LCD & 128*32 OLED
                  led_wr_str (0, 8, "c", 1);
            }
         }
@@ -227,7 +235,7 @@ void button_proc(void) {
           else if(!Auto & Bypas) led_wr_str (0, 16+8*12, "_", 1);
           else led_wr_str (0, 16+8*12, " ", 1);
         }
-        else if(type!=0) { //  1602 LCD  or 128*32 OLED
+        else if(type!=0 & type!=6) { //  1602 LCD  or 128*32 OLED
           if(Auto & !Bypas) led_wr_str (0, 8, ".", 1);
           else if(!Auto & Bypas) led_wr_str (0, 8, "_", 1);
           else led_wr_str (0, 8, " ", 1);
@@ -247,7 +255,7 @@ void button_proc(void) {
           else if(!Auto & Bypas) led_wr_str (0, 16+8*12, "_", 1);
           else led_wr_str (0, 16+8*12, " ", 1);
         }
-        else if(type!=0) { //  1602 LCD  or 128*32 OLED
+        else if(type!=0 & type!=6) { //  1602 LCD  or 128*32 OLED
           if(Auto & !Bypas) led_wr_str (0, 8, ".", 1);
           else if(!Auto & Bypas) led_wr_str (0, 8, "_", 1);
           else led_wr_str (0, 8, " ", 1);
@@ -281,7 +289,7 @@ void show_reset() {
          led_wr_str (2, 16, "SWR=0.00", 8);
          asm CLRWDT;
       }
-      else if(type!=0) {// 1602 LCD & 128*32 OLED
+      else if(type!=0 & type!=6) {// 1602 LCD & 128*32 OLED
          led_wr_str (1, 0, "RESET   ", 8);
          asm CLRWDT;
          delay_ms(600);
@@ -306,7 +314,7 @@ void btn_push() {
    if(type==4 | type==5)  {   // 128*64 OLED
       led_wr_str (2, 16+12*4, "TUNE", 4);
    }
-   else if(type!=0) {   // 1602 LCD & 128*32 OLED
+   else if(type!=0 & type!=6) {   // 1602 LCD & 128*32 OLED
       led_wr_str (1, 4, "TUNE", 4);
    }
    else {
@@ -321,6 +329,11 @@ void btn_push() {
       if(swr<=150) { LATB.B6 = 0; LATB.B7 = 1; } // Green
       else if(swr<=250) {PORTB.B6 = 0; PORTB.B7 = 0;} // Orange
       else { PORTB.B6 = 1; PORTB.B7 = 0; }  // Red
+   }
+   else if(type==6){
+      if(swr<=150) { LATB.B6 = 1; LATB.B7 = 0; } // Green
+      else if(swr<=250) {PORTB.B6 = 1; PORTB.B7 = 1;} // Orange
+      else { PORTB.B6 = 0; PORTB.B7 = 1; }  // Red
    }
    else if(Loss_mode==0 | Loss_ind==0) lcd_ind();
    if(SWR<=150) Low = 1;
@@ -365,7 +378,7 @@ void btn_push() {
       led_wr_str (2, 16, "SWR=0.00", 8);
       if(Auto) led_wr_str (0, 16+8*12, ".", 1);
    }
-   else if(type!=0) {   // 1602 LCD & 128*32 OLED
+   else if(type!=0 & type!=6) {   // 1602 LCD & 128*32 OLED
       if(lcd_prep_short==0) {
          led_wr_str (0, 4, "ATU-100", 7);
          led_wr_str (1, 3, "mini board", 10);
@@ -401,10 +414,14 @@ void lcd_swr(int swr) {
       SWR_old = swr;
       if(swr==1) {  // Low power
          if(type==4 | type==5) led_wr_str (2, 16+4*12, "0.00", 4);   // 128*64 OLED
-         else if(type!=0) led_wr_str (1, 4, "0.00", 4);  // 1602  & 128*32 OLED
+         else if(type!=0 & type!=6) led_wr_str (1, 4, "0.00", 4);  // 1602  & 128*32 OLED
          else  if(type==0) {    // real-time 2-colors led work
             LATB.B6 = 1;
             LATB.B7 = 1;
+         }
+         else if(type==6){
+            LATB.B6 = 0;
+            LATB.B7 = 0;
          }
          Low = 0;
          Mid = 0;
@@ -419,11 +436,16 @@ void lcd_swr(int swr) {
          work_str_2[2] = work_str[4];
          work_str_2[3] = work_str[5];
          if(type==4 | type==5) led_wr_str (2, 16+4*12, work_str_2, 4);  // 128*64 OLED
-         else if(type!=0) led_wr_str (1, 4, work_str_2, 4);       // 1602  & 128*32
+         else if(type!=0 & type!=6) led_wr_str (1, 4, work_str_2, 4);       // 1602  & 128*32
          else  if(type==0) {    // real-time 2-colors led work
             if(swr<=150) { LATB.B6 = 0; LATB.B7 = 1; } // Green
             else if(swr<=250) {PORTB.B6 = 0; PORTB.B7 = 0;} // Orange
             else { PORTB.B6 = 1; PORTB.B7 = 0; }  // Red
+         }
+         else if(type==6){
+            if(swr<=150) { LATB.B6 = 1; LATB.B7 = 0; } // Green
+            else if(swr<=250) {PORTB.B6 = 1; PORTB.B7 = 1;} // Orange
+            else { PORTB.B6 = 0; PORTB.B7 = 1; }  // Red
          }
          if(SWR<=150) {Low = 1; Mid = 0; High = 0;}
          else if(SWR<=250) {Low = 0; Mid = 1; High = 0;}
@@ -490,7 +512,7 @@ void show_pwr(int Power, int SWR) {
         }
      }
      if(type==4 | type==5) led_wr_str (0, 16+4*12, work_str_2, 4);  // 128*64 OLED
-     else if(type!=0) led_wr_str (0, 4, work_str_2, 4);  // 1602  & 128*32
+     else if(type!=0 & type!=6) led_wr_str (0, 4, work_str_2, 4);  // 1602  & 128*32
      //
      //  Loss indication
      if(Loss_mode==1)  {
@@ -593,7 +615,7 @@ void lcd_pwr() {
          delay_ms(100);
          led_wr_str (2, 16, "SWR=    ", 8);
       }
-      else if(type!=0)  {        // 1602  & 128*32// 1602
+      else if(type!=0 & type!=6)  {        // 1602  & 128*32// 1602
          led_wr_str (1, 0, "        ", 8);
          delay_ms(100);
          asm CLRWDT;
@@ -633,38 +655,55 @@ void lcd_ind() {
      if(ind.B2) work_int += Ind3;
      if(ind.B3) work_int += Ind4;
      if(ind.B4) work_int += Ind5;
-     if(type==4 | type==5) {  // 128*64 OLED
+     if(type==1) { //  1602 LCD
+        if(work_int>9999) {    // more then 9999 nH
+           work_int += 500; // round
+           IntToStr(work_int, work_str);
+           work_str_2[0] = ' ';
+           work_str_2[1] = work_str[1];
+           work_str_2[2] = work_str[2];
+        }
+        else {
+           work_int += 50; //  Round
+           IntToStr(work_int, work_str);
+           if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
+           work_str_2[1] = '.';
+           if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
+        }
+     }
+     else if(work_int>9999) {// more then 9999 nH
+        work_int += 50; //  Round
+        IntToStr(work_int, work_str);
+        work_str_2[0] = work_str[1];
+        work_str_2[1] = work_str[2];
+        work_str_2[2] = '.';
+        work_str_2[3] = work_str[3];
+     }
+     else {
         IntToStr(work_int, work_str);
         if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
         work_str_2[1] = '.';
         if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
         if(work_str[4] != ' ') work_str_2[3] = work_str[4]; else work_str_2[3] = '0';
+     }
+     //
+     if(type==1) {
+        if(SW==1) column = 0; else column = 1;
+        led_wr_str (column, 9, "L=", 2);
+        led_wr_str (column, 14, "uH", 2);
+        led_wr_str (column, 11, work_str_2, 3);
+     }
+     else if(type==4 | type==5) {  // 128*64 OLED
         if(SW==1) column = 4; else column = 6;
         led_wr_str (column, 16, "L=", 2);
         led_wr_str (column, 16+6*12, "uH", 2);
         led_wr_str (column, 16+2*12, work_str_2, 4);
      }
      else if(type==2 | type==3) {// 128*32 OLED
-        IntToStr(work_int, work_str);
-        if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
-        work_str_2[1] = '.';
-        if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
-        if(work_str[4] != ' ') work_str_2[3] = work_str[4]; else work_str_2[3] = '0';
         if(SW==1) column = 0; else column = 1;
         led_wr_str (column, 9, "L=", 2);
         led_wr_str (column, 15, "uH", 2);
         led_wr_str (column, 11, work_str_2, 4);
-     }
-     else if(type==1) { //  1602 LCD
-        work_int += 50; //  Round
-        IntToStr(work_int, work_str);
-        if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
-        work_str_2[1] = '.';
-        if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
-        if(SW==1) column = 0; else column = 1;
-        led_wr_str (column, 9, "L=", 2);
-        led_wr_str (column, 14, "uH", 2);
-        led_wr_str (column, 11, work_str_2, 3);
      }
    }
    asm CLRWDT;
@@ -716,7 +755,7 @@ void lcd_ind() {
 void Test_init(void) { // Test mode
       if(type==4 | type==5)        // 128*64 OLED
          led_wr_str (0, 10, "TEST MODE", 9);
-      else if(type!=0)            // 1602 LCD  or 128*32 OLED
+      else if(type!=0 & type!=6)            // 1602 LCD  or 128*32 OLED
          led_wr_str (0, 3, "TEST MODE", 9);
       asm CLRWDT;
       Delay_ms(500);
@@ -729,7 +768,7 @@ void Test_init(void) { // Test mode
       asm CLRWDT;
       if(type==4 | type==5)        // 128*64 OLED
          led_wr_str (0, 10, "         ", 9);
-      else if(type!=0)            // 1602 LCD  or 128*32 OLED
+      else if(type!=0 & type!=6)            // 1602 LCD  or 128*32 OLED
          led_wr_str (0, 3,  "         ", 9);
       atu_reset();
       SW = 1; // C to OUT
@@ -740,7 +779,7 @@ void Test_init(void) { // Test mode
       //
       if(type==4 | type==5)        // 128*64 OLED
          led_wr_str (0, 16+12*8, "l", 1);
-      else if(type!=0)             // 1602 LCD or 128*32 OLED
+      else if(type!=0 & type!=6)             // 1602 LCD or 128*32 OLED
          led_wr_str (0, 8, "l", 1);
       //
       lcd_prep_short = 1;

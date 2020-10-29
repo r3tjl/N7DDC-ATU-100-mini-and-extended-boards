@@ -33,7 +33,7 @@ void main() {
    if(STATUS.B4==0) Restart = 1;
    pic_init();
    //
-   Delay_ms (100);
+   Delay_ms (300);
    asm CLRWDT;
    cells_init();
    Soft_I2C_Init();
@@ -43,7 +43,7 @@ void main() {
    }
    dysp_cnt = Dysp_delay * dysp_cnt_mult;
    //
-   Delay_ms(200);
+   Delay_ms(300);
    asm CLRWDT;
     //
    if(PORTB.B1==0 & PORTB.B2==0) {  // Test mode
@@ -57,10 +57,13 @@ void main() {
    else if(C_q==6) C_mult = 2;
    else if(C_q==7) C_mult = 4;
    
+   Delay_ms(300);
+   asm CLRWDT;
    led_init();
+   
    if(PORTB.B1==0 & PORTB.B2==0 & PORTB.B0==0)  { // Fast Test mode (loop)
-      if(type==1) led_wr_str (0, 3, "FAST TEST", 9); // 1602
-      else if(type!=0) led_wr_str (0, 12, "FAST TEST", 9); // 128*64 | 128*32
+      if(type==4 | type==5) led_wr_str (0, 3, "FAST TEST", 9); // 1602 | 128*32
+      else if(type!=0) led_wr_str (0, 12, "FAST TEST", 9); // 128*64
       set_cap(255);
       if(L_invert==0) set_ind(255);
       else set_ind(0);
@@ -497,7 +500,7 @@ void show_pwr(int Power, int SWR) {
            work_str_2[0] = work_str[2];
            work_str_2[1] = work_str[3];
            work_str_2[2] = work_str[4];
-           work_str_2[2] = work_str[5];
+           work_str_2[3] = work_str[5];
         }
      }
      if(type==4 | type==5) led_wr_str (0, 16+4*12, work_str_2, 4);  // 128*64 OLED
@@ -545,7 +548,7 @@ void show_pwr(int Power, int SWR) {
               work_str_2[0] = work_str[2];
               work_str_2[1] = work_str[3];
               work_str_2[2] = work_str[4];
-              work_str_2[2] = work_str[5];
+              work_str_2[3] = work_str[5];
            }
         }
         if(type==4 | type==5) led_wr_str (4, 16+4*12, work_str_2, 4);  // 128*64 OLED
@@ -660,11 +663,21 @@ void lcd_ind() {
      if(ind.B4) work_int += Ind5;
      if(ind.B5) work_int += Ind6;
      if(ind.B6) work_int += Ind7;
-     IntToStr(work_int, work_str);
-     if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
-     work_str_2[1] = '.';
-     if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
-     if(work_str[4] != ' ') work_str_2[3] = work_str[4]; else work_str_2[3] = '0';
+     if(work_int>9999) {    // more then 9999 nH
+        work_int += 50; // round
+        IntToStr(work_int, work_str);
+        work_str_2[0] = work_str[1];
+        work_str_2[1] = work_str[2];
+        work_str_2[2] = '.';
+        work_str_2[3] = work_str[3];
+     }
+     else {
+        IntToStr(work_int, work_str);
+        if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
+        work_str_2[1] = '.';
+        if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
+        if(work_str[4] != ' ') work_str_2[3] = work_str[4]; else work_str_2[3] = '0';
+     }
      if(type==4 | type==5) {  // 128*64 OLED
         if(SW==1) column = 4; else column = 6;
         led_wr_str (column, 16, "L=", 2);

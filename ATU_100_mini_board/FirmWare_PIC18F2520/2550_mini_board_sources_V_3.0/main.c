@@ -35,7 +35,7 @@ void main() {
    if(RCON.B3==0) Restart = 1;
    pic_init();
    //
-   Delay_ms (100);
+   Delay_ms (300);
    asm CLRWDT;
    cells_init();
    Soft_I2C_Init();
@@ -48,16 +48,20 @@ void main() {
    High = 0;
    dysp_cnt = Dysp_delay * dysp_cnt_mult;
    //
-   Delay_ms(200);
+   Delay_ms(300);
    asm CLRWDT;
    if(PORTB.B4==0 & PORTB.B5==0)   {    // Test mode
       Test = 1;
       Auto = 0;
    }
+   
+   Delay_ms(300);
+   asm CLRWDT;
+   
    led_init();
    if(PORTB.B4==0 & PORTB.B5==0 & PORTB.B0==0)  { // Fast Test mode (loop)
-      if(type==1) led_wr_str (0, 3, "FAST TEST", 9); // 1602
-      else if(type!=0) led_wr_str (0, 12, "FAST TEST", 9); // 128*64 | 128*32
+      if(type==4 | type==5) led_wr_str (0, 3, "FAST TEST", 9); // 1602 | 128*32
+      else if(type!=0) led_wr_str (0, 12, "FAST TEST", 9); // 128*64
       set_cap(255);
       set_ind(255);
       set_sw(1);
@@ -627,45 +631,62 @@ void lcd_pwr() {
 void lcd_ind() {
    char column;
    asm CLRWDT;
-   if(1) {
+  if(1) {
      work_int = 0;
      if(ind.B0) work_int += Ind1;
      if(ind.B1) work_int += Ind2;
      if(ind.B2) work_int += Ind3;
      if(ind.B3) work_int += Ind4;
      if(ind.B4) work_int += Ind5;
-     if(type==4 | type==5) {  // 128*64 OLED
+     if(type==1) { //  1602 LCD
+        if(work_int>9999) {    // more then 9999 nH
+           work_int += 500; // round
+           IntToStr(work_int, work_str);
+           work_str_2[0] = ' ';
+           work_str_2[1] = work_str[1];
+           work_str_2[2] = work_str[2];
+        }
+        else {
+           work_int += 50; //  Round
+           IntToStr(work_int, work_str);
+           if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
+           work_str_2[1] = '.';
+           if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
+        }
+     }
+     else if(work_int>9999) {// more then 9999 nH
+        work_int += 50; //  Round
+        IntToStr(work_int, work_str);
+        work_str_2[0] = work_str[1];
+        work_str_2[1] = work_str[2];
+        work_str_2[2] = '.';
+        work_str_2[3] = work_str[3];
+     }
+     else {
         IntToStr(work_int, work_str);
         if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
         work_str_2[1] = '.';
         if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
         if(work_str[4] != ' ') work_str_2[3] = work_str[4]; else work_str_2[3] = '0';
+     }
+     //
+     if(type==1) {
+        if(SW==1) column = 0; else column = 1;
+        led_wr_str (column, 9, "L=", 2);
+        led_wr_str (column, 14, "uH", 2);
+        led_wr_str (column, 11, work_str_2, 3);
+     }
+     else if(type==4 | type==5) {  // 128*64 OLED
         if(SW==1) column = 4; else column = 6;
         led_wr_str (column, 16, "L=", 2);
         led_wr_str (column, 16+6*12, "uH", 2);
         led_wr_str (column, 16+2*12, work_str_2, 4);
      }
      else if(type==2 | type==3) {// 128*32 OLED
-        IntToStr(work_int, work_str);
-        if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
-        work_str_2[1] = '.';
-        if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
-        if(work_str[4] != ' ') work_str_2[3] = work_str[4]; else work_str_2[3] = '0';
         if(SW==1) column = 0; else column = 1;
         led_wr_str (column, 9, "L=", 2);
         led_wr_str (column, 15, "uH", 2);
         led_wr_str (column, 11, work_str_2, 4);
-     }
-     else if(type==1) { //  1602 LCD
-        work_int += 50; //  Round
-        IntToStr(work_int, work_str);
-        if(work_str[2] != ' ') work_str_2[0] = work_str[2]; else work_str_2[0] = '0';
-        work_str_2[1] = '.';
-        if(work_str[3] != ' ') work_str_2[2] = work_str[3]; else work_str_2[2] = '0';
-        if(SW==1) column = 0; else column = 1;
-        led_wr_str (column, 9, "L=", 2);
-        led_wr_str (column, 14, "uH", 2);
-        led_wr_str (column, 11, work_str_2, 3);
      }
    }
    asm CLRWDT;

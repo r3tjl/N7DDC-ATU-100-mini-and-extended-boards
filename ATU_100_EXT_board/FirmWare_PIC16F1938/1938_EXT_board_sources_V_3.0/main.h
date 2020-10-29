@@ -39,8 +39,7 @@ void sub_tune(void);
 //
 
  int correction(int input) {
-     input *= 3; // Devider compensation
-
+     //
      if(input <= 80) return 0;
      if(input <= 171) input += 244;
      else if(input <= 328) input += 254;
@@ -56,7 +55,6 @@ void sub_tune(void);
      else if(input <= 10500) input += 840;
      else  input += 860;
      //
-
      return input;
 }
 
@@ -104,8 +102,8 @@ void get_pwr() {
    //
    Forward = get_forward();
    Reverse = get_reverse();
-   if(D_correction==1) p = correction(Forward);
-   else p = Forward;
+   if(D_correction==1) p = correction(Forward * 3);
+   else p = Forward * 3;
    //
    if(Reverse >= Forward)
       Forward = 999;
@@ -117,10 +115,10 @@ void get_pwr() {
    p = p * K_Mult / 1000.0;   // mV to Volts on Input
    p = p / 1.414;
    if(P_High==1) p = p * p / 50;     // 0 - 1500 ( 1500 Watts)
-   else p = p * p / 5;
-   p = p + 0.5;    // rounding to 0.1 W
+   else p = p * p / 5;               // 0 - 1510 (151.0 Watts)
+   p = p + 0.5;    // rounding
    //
-   PWR = p;   // 0 - 1510 (151.0 Watts)
+   PWR = p;
    if(PWR<10) SWR = 1;
    else if(Forward<100) SWR = 999;
    else SWR = Forward;
