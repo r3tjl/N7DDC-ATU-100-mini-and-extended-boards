@@ -1,0 +1,9 @@
+0	1	mikroCPIC1618.exe -MSF -DBG -pP16F1938 -DL -O11111114 -fo16 -N"C:\Users\Brux\Desktop\1938_EXT_board_sources_malamute\atu_100_fw_00.mcppi" -EH"C:\Users\Brux\Desktop\1938_EXT_board_sources_malamute\atu_100_fw_00.ihex" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for PIC\Uses\P16_Enh\" -SP"C:\Users\Brux\Desktop\1938_EXT_board_sources_malamute\" -IP"C:\Users\Brux\Desktop\1938_EXT_board_sources_malamute\" "pic_init.c" "oled_control.c" "main.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System.mcl" "__Lib_Delays.mcl" "__Lib_Conversions.mcl" "__Lib_Button.mcl" "__Lib_ADC.mcl" "__Lib_EEPROM.mcl"	 
+hint: 0	1139	Available RAM: 1016 [bytes], Available ROM: 16384 [bytes]	 
+diagnostics: 0	122	Compilation Started	pic_init.c
+diagnostics: 48	123	Compiled Successfully	pic_init.c
+diagnostics: 0	122	Compilation Started	oled_control.h
+diagnostics: 407	123	Compiled Successfully	oled_control.c
+diagnostics: 0	122	Compilation Started	oled_control.h
+error: 336	324	Undeclared identifier 'millis' in expression	main.c
+error: 0	102	Finished (with errors): 13 окт 2020, 19:02:46	atu_100_fw_00.mcppi
